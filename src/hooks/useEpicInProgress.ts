@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { InProgressEpicData } from "../types";
 import { loadSavedData } from "../utils";
-import { Alert, confirmAlert } from "@raycast/api";
+import { Alert, LocalStorage, confirmAlert } from "@raycast/api";
 import { t } from "i18next";
 
-export const useEpicInProgress = () => {
+import type { InProgressEpicData } from "../types";
+import { CURRENT_EPIC_STORAGE_KEY } from "../consts";
+
+export const useEpicInProgress = (updateLastUsedTimestamp: (epicName: string) => void) => {
   const [workingOnEpicData, setWorkingOnEpicData] = useState<InProgressEpicData | null | undefined>(undefined);
 
   useEffect(() => {
@@ -13,14 +15,26 @@ export const useEpicInProgress = () => {
     });
   }, []);
 
+  useEffect(() => {
+    if (workingOnEpicData === undefined) return;
+    if (workingOnEpicData === null) {
+      LocalStorage.removeItem(CURRENT_EPIC_STORAGE_KEY);
+    } else {
+      LocalStorage.setItem(CURRENT_EPIC_STORAGE_KEY, JSON.stringify(workingOnEpicData));
+    }
+  }, [workingOnEpicData]);
+
+  const _startWorkingOnEpic = (epicName: string) => {
+    setWorkingOnEpicData({
+      name: epicName,
+      workStartedTimestamp: Date.now(),
+    });
+    updateLastUsedTimestamp(epicName);
+  };
+
   const startWork = (epicName: string) => {
     const hasUnfinishedWork = workingOnEpicData && workingOnEpicData?.name !== epicName;
-    const discardAndStartWork = () => {
-      setWorkingOnEpicData({
-        name: epicName,
-        workStartedTimestamp: Date.now(),
-      });
-    };
+    const discardAndStartWork = () => _startWorkingOnEpic(epicName);
     const showDiscardConfirmation = () =>
       confirmAlert({
         title: t("Discard ongoing work?"),
@@ -37,10 +51,7 @@ export const useEpicInProgress = () => {
     if (hasUnfinishedWork) {
       showDiscardConfirmation();
     } else {
-      setWorkingOnEpicData({
-        name: epicName,
-        workStartedTimestamp: Date.now(),
-      });
+      _startWorkingOnEpic(epicName);
     }
   };
 

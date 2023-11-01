@@ -1,9 +1,8 @@
 import { Action, Icon, Toast, getPreferenceValues, showHUD, showToast } from "@raycast/api";
-import { InProgressEpicData } from "../types";
 import { generateCalendarURL } from "../utils";
-
-import type { Preferences } from "../types";
 import { t } from "i18next";
+
+import type { Preferences, InProgressEpicData } from "../types";
 
 interface Props {
   workingOnEpic: InProgressEpicData | null;

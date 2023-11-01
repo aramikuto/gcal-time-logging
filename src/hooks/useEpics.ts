@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { EpicData } from "../types";
-import { Toast, showToast } from "@raycast/api";
+import { LocalStorage, Toast, showToast } from "@raycast/api";
 import { t } from "i18next";
 import { loadSavedData } from "../utils";
+
+import type { EpicData } from "../types";
+import { EPICS_STORAGE_KEY } from "../consts";
 
 export const useEpics = () => {
   const [epics, setEpics] = useState<EpicData[] | undefined>(undefined);
@@ -12,6 +14,11 @@ export const useEpics = () => {
       setEpics(epics);
     });
   }, []);
+
+  useEffect(() => {
+    if (epics === undefined) return;
+    LocalStorage.setItem(EPICS_STORAGE_KEY, JSON.stringify(epics));
+  }, [epics]);
 
   const addEpic = (newEpicName: string) => {
     if (epics === undefined) return;
@@ -38,9 +45,25 @@ export const useEpics = () => {
       ...epics,
       {
         name,
+        addedTimestamp: Date.now(),
         description,
       },
     ]);
+  };
+
+  const updateLastUsedTimestamp = (epicName: string, timestamp?: number) => {
+    if (!epics) return;
+    setEpics(
+      epics.map((epic) => {
+        if (epic.name === epicName) {
+          return {
+            ...epic,
+            lastUsedTimestamp: timestamp || Date.now(),
+          };
+        }
+        return epic;
+      }),
+    );
   };
 
   const deleteEpic = (epicName: string) => {
@@ -52,5 +75,6 @@ export const useEpics = () => {
     epics,
     deleteEpic,
     addEpic,
+    updateLastUsedTimestamp,
   };
 };

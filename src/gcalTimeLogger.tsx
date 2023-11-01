@@ -17,12 +17,12 @@ export default function gcalTimeLogger() {
   const { t, i18n } = useTranslation();
 
   const [inputEpicName, setInputEpicName] = useState("");
-  const { epics, deleteEpic, addEpic } = useEpics();
-  const { workingOnEpicData, setWorkingOnEpicData, startWork, workStartedAt } = useEpicInProgress();
+  const { epics, deleteEpic, addEpic, updateLastUsedTimestamp } = useEpics();
+  const { workingOnEpicData, setWorkingOnEpicData, startWork, workStartedAt } =
+    useEpicInProgress(updateLastUsedTimestamp);
   const isMigrationNeeded = useMigrationManager();
 
   useEffect(() => {
-    console.log(preferences.locale);
     i18n.changeLanguage(preferences.locale || "en");
   }, [preferences.locale]);
 
