@@ -51,6 +51,28 @@ export const useEpics = () => {
     ]);
   };
 
+  const updateEpic = (epicName: string, query: string) => {
+    if (!epics) return;
+
+    if (epics === undefined) return;
+    const [name_, ...description_] = query.split("/");
+    const name = name_.trim();
+    const description = description_.join("/").trim();
+
+    setEpics(
+      epics.map((epic) => {
+        if (epic.name === epicName) {
+          return {
+            ...epic,
+            name,
+            description,
+          };
+        }
+        return epic;
+      }),
+    );
+  };
+
   const updateLastUsedTimestamp = (epicName: string, timestamp?: number) => {
     if (!epics) return;
     setEpics(
@@ -76,5 +98,6 @@ export const useEpics = () => {
     deleteEpic,
     addEpic,
     updateLastUsedTimestamp,
+    updateEpic,
   };
 };

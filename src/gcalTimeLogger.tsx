@@ -16,7 +16,7 @@ export default function gcalTimeLogger() {
   const { t, i18n } = useTranslation();
 
   const [inputEpicName, setInputEpicName] = useState("");
-  const { epics, deleteEpic, addEpic, updateLastUsedTimestamp } = useEpics();
+  const { epics, deleteEpic, addEpic, updateLastUsedTimestamp, updateEpic } = useEpics();
   const { workingOnEpicData, setWorkingOnEpicData, startWork, workStartedAt } =
     useEpicInProgress(updateLastUsedTimestamp);
   const isMigrationNeeded = useMigrationManager();
@@ -94,6 +94,12 @@ export default function gcalTimeLogger() {
                     title={t("Create Epic From Search Query")}
                     shortcut={{ modifiers: ["cmd"], key: "n" }}
                     onAction={() => epics && addEpic(inputEpicName)}
+                  />
+                  <Action
+                    icon={Icon.Redo}
+                    title={t("Edit Description")}
+                    shortcut={{ modifiers: ["cmd"], key: "r" }}
+                    onAction={() => updateEpic(epic.name, inputEpicName)}
                   />
                 </ActionPanel>
               }
