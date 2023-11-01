@@ -22,7 +22,7 @@ export const useEpicInProgress = (updateLastUsedTimestamp: (epicName: string) =>
     } else {
       LocalStorage.setItem(CURRENT_EPIC_STORAGE_KEY, JSON.stringify(workingOnEpicData));
     }
-  }, [workingOnEpicData]);
+  }, [JSON.stringify(workingOnEpicData)]);
 
   const _startWorkingOnEpic = (epicName: string) => {
     setWorkingOnEpicData({

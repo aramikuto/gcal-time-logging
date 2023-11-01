@@ -1,10 +1,9 @@
-import { Action, ActionPanel, LocalStorage, Icon, List, getPreferenceValues, Detail } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, getPreferenceValues, Detail } from "@raycast/api";
 import { useEffect, useState } from "react";
 import "./i18n";
 import { useTranslation } from "react-i18next";
 
 import type { Preferences } from "./types";
-import { CURRENT_EPIC_STORAGE_KEY, EPICS_STORAGE_KEY } from "./consts";
 import { useEpics } from "./hooks/useEpics";
 import { useEpicInProgress } from "./hooks/useEpicInProgress";
 import { useMigrationManager } from "./hooks/useMigrationManager";
@@ -25,20 +24,6 @@ export default function gcalTimeLogger() {
   useEffect(() => {
     i18n.changeLanguage(preferences.locale || "en");
   }, [preferences.locale]);
-
-  useEffect(() => {
-    if (!epics) return;
-    LocalStorage.setItem(EPICS_STORAGE_KEY, JSON.stringify(epics));
-  }, [inputEpicName]);
-
-  useEffect(() => {
-    if (workingOnEpicData === undefined) return;
-    if (workingOnEpicData === null) {
-      LocalStorage.removeItem(CURRENT_EPIC_STORAGE_KEY);
-    } else {
-      LocalStorage.setItem(CURRENT_EPIC_STORAGE_KEY, JSON.stringify(workingOnEpicData));
-    }
-  }, [JSON.stringify(workingOnEpicData)]);
 
   const sortedEpics = useEpicFilter(epics, workingOnEpicData?.name, inputEpicName);
 
