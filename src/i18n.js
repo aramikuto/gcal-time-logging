@@ -13,7 +13,7 @@ const resources = {
   },
   ja: {
     translation: {
-      "Empty epic name is not allowed": "エピック名が空です",
+      "Empty epic name": "エピック名が空です",
       "Setting up...": "準備中...",
       "Discard ongoing work?": "未登録の作業があります",
       "Log time": "時間を記録する",
