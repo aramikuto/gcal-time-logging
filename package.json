@@ -8,6 +8,24 @@
   "license": "MIT",
   "preferences": [
     {
+      "name": "locale",
+      "type": "dropdown",
+      "title": "Locale",
+      "description": "Select your locale",
+      "required": true,
+      "default": "en",
+      "data": [
+        {
+          "value": "en",
+          "title": "English"
+        },
+        {
+          "value": "ja",
+          "title": "Japanese"
+        }
+      ]
+    },
+    {
       "name": "templateEventUrl",
       "title": "Template event (optional)",
       "description": "Here’s how to create a Google Calendar event template:\n\n1. Open Google Calendar on the web and start creating a new event.\n2. Fill in some details such as Availability, Label etc and save the event.\n3. Click on it and then select the three dots from the right corner. Select Publish event.\n4. Copy the link and paste it here.",
@@ -25,7 +43,9 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.60.1"
+    "@raycast/api": "^1.60.1",
+    "i18next": "^23.6.0",
+    "react-i18next": "^13.3.1"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.6",

@@ -1,203 +1,57 @@
-import {
-  Action,
-  ActionPanel,
-  Detail,
-  LocalStorage,
-  Icon,
-  List,
-  showToast,
-  Toast,
-  showHUD,
-  confirmAlert,
-  Alert,
-  getPreferenceValues,
-} from "@raycast/api";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Action, ActionPanel, LocalStorage, Icon, List, getPreferenceValues, Detail } from "@raycast/api";
+import { useEffect, useState } from "react";
+import "./i18n";
+import { useTranslation } from "react-i18next";
 
-import type { EpicData, InProgressEpicData, Preferences } from "./types";
+import type { Preferences } from "./types";
+import { CURRENT_EPIC_STORAGE_KEY, EPICS_STORAGE_KEY } from "./consts";
+import { useEpics } from "./hooks/useEpics";
+import { useEpicInProgress } from "./hooks/useEpicInProgress";
+import { useMigrationManager } from "./hooks/useMigrationManager";
+import { useEpicFilter } from "./hooks/useEpicFilter";
+import { TimeLogAction } from "./components/TimeLogAction";
 
 const preferences = getPreferenceValues<Preferences>();
 
-const generateCalendarURL = (title: string, startDate: number, endDate: number) => {
-  const base = preferences.templateEventUrl || "https://www.google.com/calendar/render?action=TEMPLATE";
-  // return BASE64 encoded string. Dates are in the RFC 5545 format
-  const startDateString = new Date(startDate).toISOString().replace(/[-:.]/g, "");
-  const endDateString = new Date(endDate).toISOString().replace(/[-:.]/g, "");
-  return `${base}&text=${encodeURIComponent(title)}&dates=${startDateString}/${endDateString}`;
-};
-
 export default function gcalTimeLogger() {
+  const { t, i18n } = useTranslation();
+
   const [inputEpicName, setInputEpicName] = useState("");
-  const [epics, setEpics] = useState<EpicData[] | undefined>(undefined);
-  const [workingOnEpicData, setWorkingOnEpicData] = useState<InProgressEpicData | null | undefined>(undefined);
+  const { epics, deleteEpic, addEpic } = useEpics();
+  const { workingOnEpicData, setWorkingOnEpicData, startWork, workStartedAt } = useEpicInProgress();
+  const isMigrationNeeded = useMigrationManager();
+
   useEffect(() => {
-    LocalStorage.getItem("epics").then((epics) => {
-      if (epics && typeof epics === "string") {
-        setEpics(JSON.parse(epics));
-      } else {
-        setEpics([]);
-      }
-    });
-    LocalStorage.getItem("currentEpic").then((epicData) => {
-      if (epicData) {
-        if (typeof epicData === "string") {
-          setWorkingOnEpicData(JSON.parse(epicData));
-        } else {
-          setWorkingOnEpicData(undefined);
-        }
-      } else {
-        setWorkingOnEpicData(null);
-      }
-    });
-  }, []);
+    console.log(preferences.locale);
+    i18n.changeLanguage(preferences.locale || "en");
+  }, [preferences.locale]);
 
   useEffect(() => {
     if (!epics) return;
-    LocalStorage.setItem("epics", JSON.stringify(epics));
-  }, [epics, inputEpicName]);
+    LocalStorage.setItem(EPICS_STORAGE_KEY, JSON.stringify(epics));
+  }, [inputEpicName]);
 
   useEffect(() => {
     if (workingOnEpicData === undefined) return;
     if (workingOnEpicData === null) {
-      LocalStorage.removeItem("currentEpic");
+      LocalStorage.removeItem(CURRENT_EPIC_STORAGE_KEY);
     } else {
-      LocalStorage.setItem("currentEpic", JSON.stringify(workingOnEpicData));
+      LocalStorage.setItem(CURRENT_EPIC_STORAGE_KEY, JSON.stringify(workingOnEpicData));
     }
   }, [JSON.stringify(workingOnEpicData)]);
 
-  const deleteEpic = (epicName: string) => {
-    if (!epics) return;
-    setEpics(epics.filter((epic) => epic.name !== epicName));
-  };
+  const sortedEpics = useEpicFilter(epics, workingOnEpicData?.name, inputEpicName);
 
-  const addEpic = () => {
-    if (epics === undefined) return;
-    const [name_, ...description_] = inputEpicName.split("/");
-    const name = name_.trim();
-    const description = description_.join("/").trim();
-
-    if (epics.find((epic) => epic.name === name)) {
-      showToast({
-        title: "エピック名が重複しています",
-        style: Toast.Style.Failure,
-      });
-      return;
-    }
-
-    if (!name) {
-      showToast({
-        title: "エピック名が空です",
-        style: Toast.Style.Failure,
-      });
-      return;
-    }
-    setEpics([
-      ...epics,
-      {
-        name,
-        description,
-      },
-    ]);
-  };
-
-  const filteredEpics = useMemo(() => {
-    const [name_, ...description_] = inputEpicName.split("/");
-    const name = name_.trim().toLocaleLowerCase();
-    const description = description_.join("/").trim().toLocaleLowerCase();
-    return epics?.filter(
-      (epic) =>
-        epic.name.toLocaleLowerCase().includes(name) ||
-        epic.description?.toLocaleLowerCase().includes(name) ||
-        (description && epic.description?.toLocaleLowerCase().includes(description)),
-    );
-  }, [epics, inputEpicName]);
-
-  // If current working epic set, it should be on top
-  const sortedEpics = useMemo(() => {
-    if (!filteredEpics) return undefined;
-    if (!workingOnEpicData?.name) return filteredEpics;
-    const workingEpicIndex = filteredEpics.findIndex((epic) => epic.name === workingOnEpicData?.name);
-    if (workingEpicIndex === -1) return filteredEpics;
-    const workingEpic = filteredEpics[workingEpicIndex];
-    const filteredEpicsWithoutWorkingEpic = filteredEpics.filter((epic) => epic !== workingEpic);
-    return [workingEpic, ...filteredEpicsWithoutWorkingEpic];
-  }, [epics, inputEpicName, workingOnEpicData?.name]);
-
-  const startWork = (epicName: string) => {
-    if (workingOnEpicData && workingOnEpicData?.name !== epicName) {
-      confirmAlert({
-        title: "未登録の作業があります",
-        primaryAction: {
-          title: "破棄して開始",
-          style: Alert.ActionStyle.Destructive,
-          onAction: () => {
-            setWorkingOnEpicData({
-              name: epicName,
-              workStartedTimestamp: Date.now(),
-            });
-          },
-        },
-        dismissAction: {
-          title: "戻る",
-        },
-      });
-    } else {
-      setWorkingOnEpicData({
-        name: epicName,
-        workStartedTimestamp: Date.now(),
-      });
-    }
-  };
-
-  const workStartedAt = workingOnEpicData?.workStartedTimestamp
-    ? new Date(workingOnEpicData.workStartedTimestamp)
-    : null;
-
-  const TimeLogAction = useCallback(() => {
-    if (!workingOnEpicData?.workStartedTimestamp) return null;
-    const startTime = new Date(workingOnEpicData.workStartedTimestamp);
-    const endTime = Date.now();
-    const durationInMinutes = Math.floor((endTime - startTime.getTime()) / 1000 / 60);
-    const url = generateCalendarURL(workingOnEpicData.name, startTime.getTime(), endTime);
-    return (
-      <Action.OpenInBrowser
-        onOpen={() => {
-          setWorkingOnEpicData(null);
-          if (!workingOnEpicData?.workStartedTimestamp) {
-            showToast({
-              title: "開始時間がないため登録は失敗しました",
-              style: Toast.Style.Failure,
-            });
-            return null;
-          } else {
-            showHUD(`作業時間は${durationInMinutes}分でした`);
-          }
-        }}
-        icon={Icon.StopFilled}
-        title="作業を終了(記録する)"
-        // onAction={() => stopWork(true)}
-        url={url}
-        shortcut={{ modifiers: ["cmd"], key: "s" }}
-      />
-    );
-  }, [workingOnEpicData?.name, workingOnEpicData?.workStartedTimestamp]);
+  if (isMigrationNeeded === true) {
+    return <Detail isLoading={isMigrationNeeded === undefined} markdown={`# ${t("Setting up...")}`} />;
+  }
 
   return (
     <>
-      <Detail markdown="## Click on epic to delete it" />
-      {/* <Form>
-        <Form.TextField
-          id="nameField"
-          title="追加"
-          placeholder="エピック名"
-          onChange={handleNameChange}
-          value={newEpicName}
-        />
-      </Form> */}
       <List
         filtering={false}
         onSearchTextChange={setInputEpicName}
-        searchBarPlaceholder="エピック名 / デスクリプション（任意）"
+        searchBarPlaceholder="Epic name / description (optional)"
         navigationTitle="Log time"
         isLoading={!epics || workingOnEpicData === undefined}
       >
@@ -213,36 +67,38 @@ export default function gcalTimeLogger() {
                   ? [
                       {
                         icon: Icon.PlayFilled,
-                        text: `${String(workStartedAt.getHours()).padStart(2, "0")}:${String(
-                          workStartedAt.getMinutes(),
-                        ).padStart(2, "0")}から作業集です`,
+                        text: t("Work started at", {
+                          workStartedAt: `${String(workStartedAt.getHours()).padStart(2, "0")}:${String(
+                            workStartedAt.getMinutes(),
+                          ).padStart(2, "0")}`,
+                        }),
                       },
                     ]
                   : []
               }
               actions={
-                <ActionPanel title="エピック">
+                <ActionPanel title={t("Epic")}>
                   {workingOnEpicData?.name !== epic.name ? (
                     <>
                       <Action
                         icon={Icon.PlayFilled}
-                        title="作業を開始"
+                        title={t("Start Working")}
                         onAction={() => startWork(epic.name)}
                         shortcut={{ modifiers: ["cmd"], key: "g" }}
                       />
                       <Action
                         icon={Icon.XMarkCircle}
-                        title="エピックを一覧から削除する"
+                        title={t("Delete This Epic")}
                         shortcut={{ modifiers: ["ctrl"], key: "d" }}
                         onAction={() => deleteEpic(epic.name)}
                       />
                     </>
                   ) : (
                     <>
-                      <TimeLogAction />
+                      <TimeLogAction setWorkingOnEpic={setWorkingOnEpicData} workingOnEpic={workingOnEpicData} />
                       <Action
                         icon={Icon.DeleteDocument}
-                        title="作業を終了(記録しない)"
+                        title={t("Finish Work (Discard Work)")}
                         onAction={() => setWorkingOnEpicData(null)}
                         shortcut={{ modifiers: ["cmd"], key: "d" }}
                       />
@@ -250,9 +106,9 @@ export default function gcalTimeLogger() {
                   )}
                   <Action
                     icon={Icon.PlusCircle}
-                    title="エピックを追加 (名前は検索クエリーになります)"
+                    title={t("Create Epic From Search Query")}
                     shortcut={{ modifiers: ["cmd"], key: "n" }}
-                    onAction={() => epics && addEpic()}
+                    onAction={() => epics && addEpic(inputEpicName)}
                   />
                 </ActionPanel>
               }
@@ -261,14 +117,14 @@ export default function gcalTimeLogger() {
         ) : (
           <List.EmptyView
             icon={Icon.PlusSquare}
-            title="Actionsからエピックを登録しましょう！"
+            title="Create New Epic From Action Menu"
             actions={
-              <ActionPanel title="エピック">
+              <ActionPanel title={t("Epic")}>
                 <Action
                   icon={Icon.PlusCircle}
-                  title="エピックを追加 (名前は検索クエリーになります)"
+                  title={t("Create Epic From Search Query")}
                   shortcut={{ modifiers: ["cmd"], key: "n" }}
-                  onAction={() => epics && addEpic()}
+                  onAction={() => epics && addEpic(inputEpicName)}
                 />
               </ActionPanel>
             }
