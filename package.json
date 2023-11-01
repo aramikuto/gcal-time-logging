@@ -1,0 +1,44 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "time-logger",
+  "title": "Google calendar time logger",
+  "description": "Google calendar time logger",
+  "icon": "command-icon.png",
+  "author": "aramikuto",
+  "license": "MIT",
+  "preferences": [
+    {
+      "name": "templateEventUrl",
+      "title": "Template event (optional)",
+      "description": "Here’s how to create a Google Calendar event template:\n\n1. Open Google Calendar on the web and start creating a new event.\n2. Fill in some details such as Availability, Label etc and save the event.\n3. Click on it and then select the three dots from the right corner. Select Publish event.\n4. Copy the link and paste it here.",
+      "type": "textfield",
+      "placeholder": "https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=IIIIII&tmsrc=email@gmail.com",
+      "required": false
+    }
+  ],
+  "commands": [
+    {
+      "name": "gcalTimeLogger",
+      "title": "Gcal Time Logger",
+      "description": "Google calendar time logger",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.60.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.6",
+    "@types/node": "18.18.4",
+    "@types/react": "18.2.27",
+    "eslint": "^8.51.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint"
+  }
+}
