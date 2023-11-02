@@ -55,8 +55,7 @@ export const useEpics = () => {
     if (!epics) return;
 
     if (epics === undefined) return;
-    const [name_, ...description_] = query.split("/");
-    const name = name_.trim();
+    const [, ...description_] = query.split("/");
     const description = description_.join("/").trim();
 
     setEpics(
@@ -64,7 +63,6 @@ export const useEpics = () => {
         if (epic.name === epicName) {
           return {
             ...epic,
-            name,
             description,
           };
         }
