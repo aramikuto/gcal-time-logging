@@ -29,7 +29,7 @@ const resources = {
       Cancel: "キャンセル",
       "Epic with this name already exists": "エピック名が重複しています",
       "Failed to record time": "開始時間がないため登録は失敗しました",
-      WorkingTime: "作業時間は${{durationInMinutes}}分でした",
+      WorkingTime: "作業時間は{{durationInMinutes}}分でした",
       "Finish working (record time)": "作業を終了(記録する)",
       "Edit Description": "デスクリプションを更新する",
     },
