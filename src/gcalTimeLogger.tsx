@@ -31,11 +31,19 @@ export default function gcalTimeLogger() {
     return <Detail isLoading={isMigrationNeeded === undefined} markdown={`# ${t("Setting up...")}`} />;
   }
 
+  const createEpicFromQuery = () => {
+    if (epics) {
+      addEpic(inputEpicName);
+    }
+    setInputEpicName("");
+  };
+
   return (
     <>
       <List
         filtering={false}
         onSearchTextChange={setInputEpicName}
+        searchText={inputEpicName}
         searchBarPlaceholder="Epic name / description (optional)"
         navigationTitle="Log time"
         isLoading={!epics || workingOnEpicData === undefined}
@@ -93,7 +101,7 @@ export default function gcalTimeLogger() {
                     icon={Icon.PlusCircle}
                     title={t("Create Epic From Search Query")}
                     shortcut={{ modifiers: ["cmd"], key: "n" }}
-                    onAction={() => epics && addEpic(inputEpicName)}
+                    onAction={createEpicFromQuery}
                   />
                   <Action
                     icon={Icon.Redo}
@@ -115,7 +123,7 @@ export default function gcalTimeLogger() {
                   icon={Icon.PlusCircle}
                   title={t("Create Epic From Search Query")}
                   shortcut={{ modifiers: ["cmd"], key: "n" }}
-                  onAction={() => epics && addEpic(inputEpicName)}
+                  onAction={createEpicFromQuery}
                 />
               </ActionPanel>
             }
