@@ -74,12 +74,14 @@ export default function gcalTimeLogger() {
                   {workingOnEpicData?.name !== epic.name ? (
                     <>
                       <Action
+                        key="start-work"
                         icon={Icon.PlayFilled}
                         title={t("Start Working")}
                         onAction={() => startWork(epic.name)}
                         shortcut={{ modifiers: ["cmd"], key: "g" }}
                       />
                       <Action
+                        key="delete-epic"
                         icon={Icon.XMarkCircle}
                         title={t("Delete This Epic")}
                         shortcut={{ modifiers: ["ctrl"], key: "d" }}
@@ -90,6 +92,7 @@ export default function gcalTimeLogger() {
                     <>
                       <TimeLogAction setWorkingOnEpic={setWorkingOnEpicData} workingOnEpic={workingOnEpicData} />
                       <Action
+                        key="discard-work"
                         icon={Icon.DeleteDocument}
                         title={t("Finish Work (Discard Work)")}
                         onAction={() => setWorkingOnEpicData(null)}
@@ -98,12 +101,14 @@ export default function gcalTimeLogger() {
                     </>
                   )}
                   <Action
+                    key="create-epic-from-query"
                     icon={Icon.PlusCircle}
                     title={t("Create Epic From Search Query")}
                     shortcut={{ modifiers: ["cmd"], key: "n" }}
                     onAction={createEpicFromQuery}
                   />
                   <Action
+                    key="edit-epic-description"
                     icon={Icon.Redo}
                     title={t("Edit Description")}
                     shortcut={{ modifiers: ["cmd"], key: "r" }}
@@ -120,6 +125,7 @@ export default function gcalTimeLogger() {
             actions={
               <ActionPanel title={t("Epic")}>
                 <Action
+                  key="create-epic-from-query-list"
                   icon={Icon.PlusCircle}
                   title={t("Create Epic From Search Query")}
                   shortcut={{ modifiers: ["cmd"], key: "n" }}

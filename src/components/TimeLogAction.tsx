@@ -1,4 +1,4 @@
-import { Action, Icon, Toast, getPreferenceValues, showHUD, showToast } from "@raycast/api";
+import { Action, Icon, Toast, getPreferenceValues, open, showHUD, showToast } from "@raycast/api";
 import { generateCalendarURL } from "../utils";
 import { t } from "i18next";
 
@@ -23,25 +23,31 @@ export const TimeLogAction: React.FC<Props> = ({ workingOnEpic, setWorkingOnEpic
     templateEventUrl: preferences.templateEventUrl,
   });
 
+  const showWorkingTime = async () => showHUD(t("WorkingTime", { durationInMinutes }));
+
+  const saveWork = async () => {
+    if (!workingOnEpic?.workStartedTimestamp) {
+      showToast({
+        title: t("Failed to record time"),
+        style: Toast.Style.Failure,
+      });
+      return null;
+    } else {
+      open(url);
+      setWorkingOnEpic(null);
+      await showWorkingTime();
+    }
+  };
+
   return (
-    <Action.OpenInBrowser
-      onOpen={() => {
-        setWorkingOnEpic(null);
-        if (!workingOnEpic?.workStartedTimestamp) {
-          showToast({
-            title: t("Failed to record time"),
-            style: Toast.Style.Failure,
-          });
-          return null;
-        } else {
-          showHUD(t("WorkingTime", { durationInMinutes }));
-        }
-      }}
-      icon={Icon.StopFilled}
-      title={t("Finish working (record time)")}
-      // onAction={() => stopWork(true)}
-      url={url}
-      shortcut={{ modifiers: ["cmd"], key: "s" }}
-    />
+    <>
+      <Action
+        key="log-time"
+        onAction={saveWork}
+        icon={Icon.StopFilled}
+        title={t("Finish working (record time)")}
+        shortcut={{ modifiers: ["cmd"], key: "s" }}
+      />
+    </>
   );
 };

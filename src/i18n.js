@@ -32,6 +32,7 @@ const resources = {
       WorkingTime: "作業時間は{{durationInMinutes}}分でした",
       "Finish working (record time)": "作業を終了(記録する)",
       "Edit Description": "デスクリプションを更新する",
+      "Show Working Time": "作業時間を表示する",
     },
   },
 };
