@@ -41,7 +41,7 @@ export default function gcalTimeLogger() {
             <List.Item
               key={epic.name}
               title={epic.name}
-              icon={Icon.PlayFilled}
+              icon={workingOnEpicData?.name === epic.name ? Icon.PlayFilled : undefined}
               subtitle={epic.description}
               accessories={
                 workingOnEpicData?.name === epic.name && workStartedAt
