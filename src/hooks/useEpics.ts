@@ -22,7 +22,7 @@ export const useEpics = () => {
   const addEpic = (data: NewEpicData): boolean => {
     if (epics === undefined) return false;
 
-    const { name, description } = data
+    const { name, description } = data;
 
     if (epics.find((epic) => epic.name === name)) {
       showToast({
